@@ -1,11 +1,9 @@
 <template>
-  <div :class="['timer', phase]">{{ displayTime }}</div>
+  <div :class="['timer', phase]">{{ time }}</div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
-const props = defineProps({
+defineProps({
   time: {
     type: Number,
     default: 30
@@ -16,8 +14,6 @@ const props = defineProps({
     validator: (value) => ['exercise', 'rest'].includes(value)
   }
 })
-
-const displayTime = computed(() => props.time)
 </script>
 
 <style scoped>

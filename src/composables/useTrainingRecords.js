@@ -44,7 +44,10 @@ export function useTrainingRecords(isTraining, currentStepIndex, stepSegment, cu
   function startSession() {
     endSession()
     activeSegment = null
-    sessionKey = String(Math.floor(Date.now() / 1000))
+    // 同一秒内重开会话时键顺延，避免覆盖上一场记录
+    let key = Math.floor(Date.now() / 1000)
+    while (records[key]) key++
+    sessionKey = String(key)
     records[sessionKey] = []
     updateRecord()
     heartbeatTimer = setInterval(updateRecord, UPDATE_INTERVAL_MS)

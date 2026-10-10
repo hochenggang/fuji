@@ -9,6 +9,12 @@ export function useSynthesizedAudio() {
   const isRestMode = ref(false)
   const beatIntervalMs = ref(BASE_BEAT_INTERVAL_MS)
 
+  // 发声边界：仅训练会话内允许出声。prepare() 开启会话，stop() 封闭；
+  // 封闭后 play/resume 均为空操作，避免会话收尾状态的翻转误触发声音。
+  let isActive = false
+  let isPaused = false
+  let hasBegun = false
+
   function initAudioContext() {
     if (!audioContext.value) {
       audioContext.value = new (window.AudioContext || window.webkitAudioContext)()
@@ -43,6 +49,13 @@ export function useSynthesizedAudio() {
     osc.stop(audioContext.value.currentTime + (restMode ? 0.06 : 0.1))
   }
 
+  function clearTickInterval() {
+    if (tickInterval.value) {
+      clearInterval(tickInterval.value)
+      tickInterval.value = null
+    }
+  }
+
   function scheduleTicks() {
     tickInterval.value = setInterval(() => {
       playTickSound(isRestMode.value)
@@ -50,46 +63,49 @@ export function useSynthesizedAudio() {
   }
 
   function startTicking() {
+    initAudioContext()
     isPlaying.value = true
     playTickSound(isRestMode.value)
     scheduleTicks()
   }
 
-  function play() {
+  // 会话开始（点击开始训练）：仅准备音频上下文，不出声
+  function prepare() {
     initAudioContext()
+    isActive = true
+    isPaused = false
+    hasBegun = false
+  }
 
-    if (isPlaying.value) return
-
+  // 视频就绪后开始滴答；暂停中先记录已就绪，待恢复时补上
+  function play() {
+    if (!isActive) return
+    hasBegun = true
+    if (isPaused || isPlaying.value) return
     startTicking()
   }
 
-  function prepare() {
-    initAudioContext()
-  }
-
   function pause() {
-    if (tickInterval.value) {
-      clearInterval(tickInterval.value)
-      tickInterval.value = null
-    }
+    if (!isActive) return
+    isPaused = true
+    clearTickInterval()
     isPlaying.value = false
   }
 
   function resume() {
-    if (!audioContext.value) {
-      play()
-      return
-    }
-
-    if (isPlaying.value) return
-
-    initAudioContext()
+    if (!isActive) return
+    isPaused = false
+    if (!hasBegun || isPlaying.value) return
     startTicking()
   }
 
+  // 会话结束（结束/完成）：清定时器、关上下文，并封闭声音边界
   function stop() {
-    pause()
-    isRestMode.value = false
+    isActive = false
+    isPaused = false
+    hasBegun = false
+    clearTickInterval()
+    isPlaying.value = false
     if (audioContext.value) {
       audioContext.value.close()
       audioContext.value = null
@@ -103,7 +119,7 @@ export function useSynthesizedAudio() {
   function setBeatMultiplier(multiplier) {
     beatIntervalMs.value = BASE_BEAT_INTERVAL_MS / multiplier
     if (tickInterval.value) {
-      clearInterval(tickInterval.value)
+      clearTickInterval()
       scheduleTicks()
     }
   }

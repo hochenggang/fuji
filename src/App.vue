@@ -15,7 +15,7 @@
     </button>
 
     <header v-if="!isTraining">
-      <h1>腹肌训练</h1>
+      <h1>{{ currentCourse.name }}</h1>
       <p class="subtitle">{{ currentCourse.desc }} · {{ currentCourse.steps.length }}个动作</p>
     </header>
 
@@ -38,7 +38,7 @@
         :progress="progress"
         :is-waiting-for-video="isWaitingForVideo"
         @pause="handlePause"
-        @stop="handleStop"
+        @stop="stopTraining"
         @prev="prevStep"
         @next="nextStep"
         @video-ready="handleVideoReady"
@@ -136,7 +136,8 @@ function handlePause() {
 watch(isPaused, (paused) => {
   if (paused) {
     pauseTicking()
-  } else {
+  } else if (isTraining.value) {
+    // 收尾时 resetState 会把 isPaused 翻回 false，此时会话已结束，不允许恢复声音
     resumeTicking()
   }
 })
@@ -145,19 +146,19 @@ watch(isExercising, (exercising) => {
   setRestMode(!exercising)
 }, { immediate: true })
 
-watch(isCompleted, (completed) => {
-  if (completed) {
+// 声音停止的唯一边界：会话结束（主动结束或完成）
+watch(isTraining, (training) => {
+  if (!training) {
     stopTicking()
   }
 })
 
-function handleStop() {
-  stopTicking()
-  stopTraining()
-}
+// 页签标题随课程变化
+watch(currentCourse, (course) => {
+  document.title = `${course.name} - ${course.desc}`
+}, { immediate: true })
 
 function handleRestart() {
-  stopTicking()
   resetState()
 }
 </script>

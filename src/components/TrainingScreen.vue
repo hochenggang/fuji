@@ -36,6 +36,9 @@
         </span>
       </div>
 
+      <!-- 练习阶段轮换展示分解动作，休息阶段占位隐藏避免布局跳动 -->
+      <p :class="['instruction', phase]">{{ currentInstruction }}</p>
+
       <TipsBox :tips="step.tips" />
 
       <div class="control-buttons">
@@ -218,6 +221,18 @@ function onVideoReady() {
 .phase-indicator.rest {
   background: rgba(59, 130, 246, 0.15);
   color: var(--rest);
+}
+
+.instruction {
+  min-height: 1.4em;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.instruction.rest {
+  visibility: hidden;
 }
 
 .control-buttons {
