@@ -64,8 +64,8 @@ function formatStart(timestamp) {
 }
 
 function sessionTotal(session) {
-  if (!session.steps.length) return 0
-  return session.steps[session.steps.length - 1].end_ts - session.steps[0].start_ts
+  // 休息不计入，总用时为各练习段之和
+  return session.steps.reduce((sum, step) => sum + (step.end_ts - step.start_ts), 0)
 }
 </script>
 

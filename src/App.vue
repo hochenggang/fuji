@@ -104,7 +104,7 @@ const {
 
 const { play: playTicking, pause: pauseTicking, resume: resumeTicking, stop: stopTicking, prepare: prepareAudio, setRestMode, setBeatMultiplier } = useSynthesizedAudio()
 
-const { getSessions } = useTrainingRecords(isTraining, currentStepIndex, stepSegment, currentCourse)
+const { getSessions } = useTrainingRecords({ isTraining, currentStepIndex, stepSegment, isExercising, currentCourse })
 
 const isRecordsOpen = ref(false)
 const recordsList = ref([])
