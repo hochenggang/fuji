@@ -1,7 +1,8 @@
 import { ref, computed, onUnmounted } from 'vue'
-import { exerciseSteps, difficultySettings, TOTAL_STEPS } from '../data/exercises.js'
+import { difficultySettings } from '../data/index.js'
 
-export function useTraining() {
+export function useTraining(course) {
+  const steps = computed(() => course.value.steps)
   const currentDifficulty = ref('beginner')
   const currentStepIndex = ref(0)
   const stepSegment = ref(0) // 每次进入某项或重做都算新一段，供训练记录切分
@@ -19,7 +20,7 @@ export function useTraining() {
 
   const timeRemaining = ref(settings.value.rest)
 
-  const currentStep = computed(() => exerciseSteps[currentStepIndex.value])
+  const currentStep = computed(() => steps.value[currentStepIndex.value])
 
   const progress = computed(() => {
     const { exercise, rest } = settings.value
@@ -27,7 +28,7 @@ export function useTraining() {
     const elapsedInStep = isExercising.value
       ? rest + (exercise - timeRemaining.value)
       : rest - timeRemaining.value
-    return ((currentStepIndex.value * totalStepTime + elapsedInStep) / (totalStepTime * TOTAL_STEPS)) * 100
+    return ((currentStepIndex.value * totalStepTime + elapsedInStep) / (totalStepTime * steps.value.length)) * 100
   })
 
   const currentInstruction = computed(() => {
@@ -55,7 +56,7 @@ export function useTraining() {
   }
 
   function nextStep() {
-    if (currentStepIndex.value >= TOTAL_STEPS - 1) {
+    if (currentStepIndex.value >= steps.value.length - 1) {
       completeTraining()
       return
     }

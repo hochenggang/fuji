@@ -2,13 +2,24 @@
   <div class="completion-screen">
     <div class="completion-icon">🎉</div>
     <h2 class="completion-title">训练完成！</h2>
-    <p class="completion-stats">恭喜你完成了8分钟腹肌训练</p>
-    <p class="completion-time">总时长：8分钟</p>
+    <p class="completion-stats">恭喜你完成了{{ courseName }}</p>
+    <p class="completion-time">总时长：{{ durationMinutes }}分钟</p>
     <button class="restart-btn" @click="$emit('restart')">再来一次</button>
   </div>
 </template>
 
 <script setup>
+defineProps({
+  courseName: {
+    type: String,
+    default: ''
+  },
+  durationMinutes: {
+    type: Number,
+    default: 0
+  }
+})
+
 defineEmits(['restart'])
 </script>
 

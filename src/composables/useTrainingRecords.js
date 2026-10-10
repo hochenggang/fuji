@@ -11,7 +11,7 @@ function loadRecords() {
   }
 }
 
-export function useTrainingRecords(isTraining, currentStepIndex, stepSegment) {
+export function useTrainingRecords(isTraining, currentStepIndex, stepSegment, currentCourse) {
   const records = loadRecords()
   let sessionKey = null
   let activeSegment = null
@@ -33,7 +33,7 @@ export function useTrainingRecords(isTraining, currentStepIndex, stepSegment) {
         steps[steps.length - 1].end_ts = now
       }
       activeSegment = stepSegment.value
-      steps.push({ start_ts: now, end_ts: now, step_index: currentStepIndex.value })
+      steps.push({ start_ts: now, end_ts: now, step_index: currentStepIndex.value, course: currentCourse.value.id })
     } else {
       steps[steps.length - 1].end_ts = now
     }

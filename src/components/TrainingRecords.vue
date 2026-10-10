@@ -10,12 +10,13 @@
 
       <div v-for="session in sessions" :key="session.startTs" class="session">
         <div class="session-header">
-          <span>{{ formatStart(session.startTs) }}</span>
+          <span>{{ courseOf(session).name }}</span>
           <span>总用时 {{ formatDuration(sessionTotal(session)) }}</span>
         </div>
+        <p class="session-date">{{ formatStart(session.startTs) }}</p>
         <ul class="step-list">
           <li v-for="(step, index) in session.steps" :key="index">
-            <span>{{ stepLabel(session.steps, index) }}</span>
+            <span>{{ stepLabel(session, index) }}</span>
             <span class="step-duration">{{ formatDuration(step.end_ts - step.start_ts) }}</span>
           </li>
         </ul>
@@ -25,7 +26,7 @@
 </template>
 
 <script setup>
-import { exerciseSteps } from '../data/exercises.js'
+import { findCourseById } from '../data/index.js'
 
 defineProps({
   sessions: {
@@ -36,10 +37,16 @@ defineProps({
 
 defineEmits(['close'])
 
-function stepLabel(steps, index) {
-  const step = steps[index]
-  const attempt = steps.slice(0, index + 1).filter((item) => item.step_index === step.step_index).length
-  const name = exerciseSteps[step.step_index] ? exerciseSteps[step.step_index].name : `动作 ${step.step_index + 1}`
+function courseOf(session) {
+  // 旧记录没有 course 字段，回退到默认课程
+  return findCourseById(session.steps[0]?.course)
+}
+
+function stepLabel(session, index) {
+  const step = session.steps[index]
+  const attempt = session.steps.slice(0, index + 1).filter((item) => item.step_index === step.step_index).length
+  const target = courseOf(session).steps[step.step_index]
+  const name = target ? target.name : `动作 ${step.step_index + 1}`
   return attempt > 1 ? `${name}（第${attempt}次）` : name
 }
 
@@ -130,9 +137,15 @@ function sessionTotal(session) {
 .session-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
   color: var(--text-secondary);
   font-size: 0.8125rem;
+}
+
+.session-date {
+  margin-bottom: 8px;
+  color: var(--text-tertiary);
+  font-size: 0.75rem;
 }
 
 .step-list {

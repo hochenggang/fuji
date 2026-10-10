@@ -16,11 +16,12 @@
 
     <header v-if="!isTraining">
       <h1>腹肌训练</h1>
-      <p class="subtitle">8分钟挑战 · 8个动作 · 燃烧你的腹肌</p>
+      <p class="subtitle">{{ currentCourse.desc }} · {{ currentCourse.steps.length }}个动作</p>
     </header>
 
     <div class="main-content">
       <div v-if="!isTraining && !isCompleted" class="setup-screen">
+        <CourseSelector v-model="currentCourseId" />
         <DifficultySelector v-model="currentDifficulty" />
         <button class="start-btn" @click="handleStart">开始训练</button>
       </div>
@@ -29,6 +30,7 @@
         v-if="isTraining"
         :current-step-index="currentStepIndex"
         :step="currentStep"
+        :steps="currentCourse.steps"
         :time-remaining="timeRemaining"
         :is-exercising="isExercising"
         :is-paused="isPaused"
@@ -44,6 +46,8 @@
 
       <CompletionScreen
         v-if="isCompleted"
+        :course-name="currentCourse.name"
+        :duration-minutes="courseMinutes"
         @restart="handleRestart"
       />
     </div>
@@ -55,20 +59,25 @@
     />
 
     <footer class="footer">
-      <p>&copy; {{ currentYear }} ChrisHeria. All Rights Reserved.</p>
+      <p>{{ currentCourse.cr }} All Rights Reserved.</p>
     </footer>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { courses, findCourseById } from './data/index.js'
 import { useTraining } from './composables/useTraining.js'
 import { useSynthesizedAudio } from './composables/useSynthesizedAudio.js'
 import { useTrainingRecords } from './composables/useTrainingRecords.js'
+import CourseSelector from './components/CourseSelector.vue'
 import DifficultySelector from './components/DifficultySelector.vue'
 import TrainingScreen from './components/TrainingScreen.vue'
 import CompletionScreen from './components/CompletionScreen.vue'
 import TrainingRecords from './components/TrainingRecords.vue'
+
+const currentCourseId = ref(courses[0].id)
+const currentCourse = computed(() => findCourseById(currentCourseId.value))
 
 const {
   currentDifficulty,
@@ -91,21 +100,23 @@ const {
   togglePause,
   stopTraining,
   resetState
-} = useTraining()
+} = useTraining(currentCourse)
 
 const { play: playTicking, pause: pauseTicking, resume: resumeTicking, stop: stopTicking, prepare: prepareAudio, setRestMode, setBeatMultiplier } = useSynthesizedAudio()
 
-const { getSessions } = useTrainingRecords(isTraining, currentStepIndex, stepSegment)
+const { getSessions } = useTrainingRecords(isTraining, currentStepIndex, stepSegment, currentCourse)
 
 const isRecordsOpen = ref(false)
 const recordsList = ref([])
+
+const courseMinutes = computed(() =>
+  Math.round((currentCourse.value.steps.length * (settings.value.exercise + settings.value.rest)) / 60)
+)
 
 function openRecords() {
   recordsList.value = getSessions()
   isRecordsOpen.value = true
 }
-
-const currentYear = computed(() => new Date().getFullYear())
 
 function handleStart() {
   prepareAudio()

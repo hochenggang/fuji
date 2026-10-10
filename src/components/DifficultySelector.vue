@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { difficultySettings } from '../data/exercises.js'
+import { difficultySettings } from '../data/index.js'
 
 defineProps({
   modelValue: {

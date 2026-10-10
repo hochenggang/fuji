@@ -50,7 +50,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import { exerciseSteps, TOTAL_STEPS } from '../data/exercises.js'
 import Timer from './Timer.vue'
 import TipsBox from './TipsBox.vue'
 import VideoPlayer from './VideoPlayer.vue'
@@ -62,6 +61,10 @@ const props = defineProps({
   },
   step: {
     type: Object,
+    required: true
+  },
+  steps: {
+    type: Array,
     required: true
   },
   timeRemaining: {
@@ -92,13 +95,13 @@ const props = defineProps({
 
 const emit = defineEmits(['pause', 'stop', 'videoReady', 'prev', 'next'])
 
-const totalSteps = TOTAL_STEPS
+const totalSteps = computed(() => props.steps.length)
 
 const phase = computed(() => props.isExercising ? 'exercise' : 'rest')
 
 const phaseLabel = computed(() => props.isExercising ? '练习中' : '休息 · 学习动作')
 
-const nextStep = computed(() => exerciseSteps[props.currentStepIndex + 1] || null)
+const nextStep = computed(() => props.steps[props.currentStepIndex + 1] || null)
 
 function onVideoReady() {
   emit('videoReady')
